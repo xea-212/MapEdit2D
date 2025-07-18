@@ -51,6 +51,19 @@
       <Filter>Library</Filter>
     </ClCompile>
     <ClCompile Include="Stage.cpp" />
+    <ClCompile Include="Source\Input.cpp" />
+    <ClCompile Include="MapChipConfig.cpp">
+      <Filter>PlayScene</Filter>
+    </ClCompile>
+    <ClCompile Include="MapChip.cpp">
+      <Filter>PlayScene</Filter>
+    </ClCompile>
+    <ClCompile Include="MapEdit.cpp">
+      <Filter>PlayScene</Filter>
+    </ClCompile>
+    <ClCompile Include="MapEditConfig.cpp">
+      <Filter>PlayScene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Screen.h" />
@@ -113,6 +126,20 @@
       <Filter>Library</Filter>
     </ClInclude>
     <ClInclude Include="Stage.h" />
+    <ClInclude Include="Source\Input.h" />
+    <ClInclude Include="globals.h" />
+    <ClInclude Include="MapChipConfig.h">
+      <Filter>PlayScene</Filter>
+    </ClInclude>
+    <ClInclude Include="MapChip.h">
+      <Filter>PlayScene</Filter>
+    </ClInclude>
+    <ClInclude Include="MapEdit.h">
+      <Filter>PlayScene</Filter>
+    </ClInclude>
+    <ClInclude Include="MapEditConfig.h">
+      <Filter>PlayScene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Library">

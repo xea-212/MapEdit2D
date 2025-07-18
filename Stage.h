@@ -1,5 +1,8 @@
 #pragma once
 #include "Library/GameObject.h"
+#include <vector> //可変長配列
+#include "Mapchip.h"
+#include "MapEdit.h"
 
 class Stage : public GameObject
 {
@@ -9,9 +12,14 @@ public:
 	void Update() override;
 	void Draw() override;
 private:
-	int hImage;
-	VECTOR position;
-	VECTOR imageSize;
+	//std::vector<int> bgHandle_; //背景画像のハンドルへのポインタ（配列自体）
+	MapChip* mapChip_; //マップチップのポインタ
+	MapEdit* mapEdit_;
+
+	
+
+	/*VECTOR position;
+	VECTOR imageSize;*/
 };
 
 //playsceneでstageクラスのインスタンスを作って
