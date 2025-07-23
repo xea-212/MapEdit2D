@@ -21,6 +21,8 @@ MapEditConfig LoadMapEditConfig(const std::string& iniPath)
 	cfg.MAP_IMAGE_SIZE = ReadIntFromIni("MapEdit", "MAP_IMAGE_SIZE", 0, iniPath);
 	cfg.LEFT_MARGIN = ReadIntFromIni("MapEdit", "LEFT_MARGIN", 0, iniPath);
 	cfg.TOP_MARGIN = ReadIntFromIni("MapEdit", "TOP_MARGIN", 0, iniPath);
+	cfg.MAPEDIT_VIEW_X = ReadIntFromIni("MapEdit", "MAPEDIT_VIEW_X", 0, iniPath);
+	cfg.MAPEDIT_VIEW_Y = ReadIntFromIni("MapEdit", "MAPEDIT_VIEW_Y", 0, iniPath);
 	return cfg;
 }
 

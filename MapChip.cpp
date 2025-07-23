@@ -103,8 +103,21 @@ void MapChip::Update()
 
 		//マウスの座標がマップチップの範囲内にあるかどうかをチェック
 		if (index >= 0 && index < bgHandle.size() && Input::IsButtonDown(MOUSE_INPUT_LEFT)) {
-			selectedIndex_ = bgHandle[index];
-			isHold_ = true;
+			if (CheckHitKey(KEY_INPUT_A))
+			{
+				//Aが押されていたら2x2のチップを選択
+				selectedIndex_ = bgHandle[index];
+				selectedIndex2_ = bgHandle[index + 1];
+				selectedIndex3_ = bgHandle[index + cfg_.TILES_X];
+				selectedIndex4_ = bgHandle[index + cfg_.TILES_X + 1];
+				isHold_ = true;
+			}
+			else
+			{
+				//通常は1x1のチップを選択
+				selectedIndex_ = bgHandle[index];
+				isHold_ = true;
+			}
 		}
 	}
 	else {
@@ -140,11 +153,20 @@ void MapChip::Draw()
 		int x = originX + selected_.x * cfg_.TILE_PIX_SIZE;
 		int y = selected_.y * cfg_.TILE_PIX_SIZE;
 		int size = cfg_.TILE_PIX_SIZE;
-
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
-		DrawBox(x + 1, y - 1, x + size - 1, y + size + 1, GetColor(255, 255, 0), TRUE);
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-		DrawBox(x, y, x + size, y + size, GetColor(255, 0, 0), FALSE, 2);
+		if (CheckHitKey(KEY_INPUT_A))
+		{
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
+			DrawBox(x + 1, y - 1, x + size * 2 - 1, y + size * 2 + 1, GetColor(255, 255, 0), TRUE);
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			DrawBox(x, y, x + size, y + size, GetColor(255, 0, 0), FALSE, 2);
+		}
+		else
+		{
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 100);
+			DrawBox(x + 1, y - 1, x + size - 1, y + size + 1, GetColor(255, 255, 0), TRUE);
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+			DrawBox(x, y, x + size, y + size, GetColor(255, 0, 0), FALSE, 2);
+		}
 	}
 
 
@@ -152,10 +174,33 @@ void MapChip::Draw()
 	if (isHold_) {
 		Point mousePos;
 		if (GetMousePoint(&mousePos.x, &mousePos.y) != -1) {
-			DrawExtendGraph(mousePos.x, mousePos.y,
-				mousePos.x + cfg_.TILE_PIX_SIZE,
-				mousePos.y + cfg_.TILE_PIX_SIZE,
-				selectedIndex_, TRUE);
+			//Aが押されてたら２×２の描画
+			//A離したら戻っちゃうのと一個しかおけない
+			if (CheckHitKey(KEY_INPUT_A)) {
+				DrawExtendGraph(mousePos.x, mousePos.y,
+					mousePos.x + cfg_.TILE_PIX_SIZE,
+					mousePos.y + cfg_.TILE_PIX_SIZE,
+					selectedIndex_, TRUE);
+				DrawExtendGraph(mousePos.x + cfg_.TILE_PIX_SIZE, mousePos.y,
+					mousePos.x + cfg_.TILE_PIX_SIZE * 2,
+					mousePos.y + cfg_.TILE_PIX_SIZE,
+					selectedIndex2_, TRUE);
+				DrawExtendGraph(mousePos.x, mousePos.y + cfg_.TILE_PIX_SIZE,
+					mousePos.x + cfg_.TILE_PIX_SIZE,
+					mousePos.y + cfg_.TILE_PIX_SIZE * 2,
+					selectedIndex3_, TRUE);
+				DrawExtendGraph(mousePos.x + cfg_.TILE_PIX_SIZE, mousePos.y + cfg_.TILE_PIX_SIZE,
+					mousePos.x + cfg_.TILE_PIX_SIZE * 2,
+					mousePos.y + cfg_.TILE_PIX_SIZE * 2,
+					selectedIndex4_, TRUE);
+			}
+			else //通常は1x1の描画
+			{
+				DrawExtendGraph(mousePos.x, mousePos.y,
+					mousePos.x + cfg_.TILE_PIX_SIZE,
+					mousePos.y + cfg_.TILE_PIX_SIZE,
+					selectedIndex_, TRUE);
+			}
 		}
 		if (Input::IsButtonUP(MOUSE_INPUT_RIGHT)) {
 			isHold_ = false;

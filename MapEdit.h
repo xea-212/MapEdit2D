@@ -31,5 +31,6 @@ private:
 	Rect drawAreaRect_;
 	bool isInMapEditArea_;
 	Point grid;
+	Point ScrollOffset_; //スクロールオフセット
 };
 

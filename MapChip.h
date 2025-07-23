@@ -5,6 +5,14 @@
 #include <map>
 #include "MapChipConfig.h"
 
+struct IndexRect4
+{
+	int x;
+	int y;
+	int w;
+	int z; // 2x2のマップチップのインデックス
+};
+
 class MapChip :
 	public GameObject
 {
@@ -30,6 +38,9 @@ public:
 	bool isInMapChipArea_;
 	Point selected_;//選択したマップチップの座標
 	int selectedIndex_;//選択したマップチップのインデックス
+	int selectedIndex2_;//選択したマップチップのインデックス
+	int selectedIndex3_;//選択したマップチップのインデックス
+	int selectedIndex4_;//選択したマップチップのインデックス
 	bool isHold_;
 	Point ScrollOffset_; //スクロールオフセット
 };

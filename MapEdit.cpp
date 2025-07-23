@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include <Windows.h>
 #include "MapEdit.h"
 #include <cassert>
@@ -7,17 +9,18 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <algorithm>
 using namespace std;
 
 
 
 MapEdit::MapEdit()
 	:GameObject(), myMap_(efg_.MAP_WIDTH* efg_.MAP_HEIGHT, -1), //初期値を-1で20*20の配列を初期化する
-	efg_(GetMapEditConfig()),
+	efg_(GetMapEditConfig()), ScrollOffset_({ 0,0 }),
 	isInMapEditArea_(false) //マップエディタ領域内にいるかどうか
 {
 	mapEditRect_ = { efg_.LEFT_MARGIN, efg_.TOP_MARGIN,
-		efg_.MAP_WIDTH * efg_.MAP_IMAGE_SIZE, efg_.MAP_HEIGHT * efg_.MAP_IMAGE_SIZE };
+		efg_.MAPEDIT_VIEW_X * efg_.MAP_IMAGE_SIZE, efg_.MAPEDIT_VIEW_Y * efg_.MAP_IMAGE_SIZE };
 }
 
 MapEdit::~MapEdit()
@@ -46,6 +49,7 @@ int MapEdit::GetMap(Point p) const
 
 void MapEdit::Update()
 {
+#if false
 	Point mousePos;
 	if (GetMousePoint(&mousePos.x, &mousePos.y) == -1) {
 		return;
@@ -61,6 +65,17 @@ void MapEdit::Update()
 		// グリッド座標に変換
 	if (!isInMapEditArea_) {
 		return; //マップエディタ領域外なら何もしない
+	}
+	else
+	{
+		if (Input::IsKeyDown(KEY_INPUT_LEFT))
+			ScrollOffset_.x = std::max(0, ScrollOffset_.x - 1);
+		if (Input::IsKeyDown(KEY_INPUT_RIGHT))
+			ScrollOffset_.x = std::min(std::max(0, efg_.MAP_WIDTH - efg_.MAPEDIT_VIEW_X), ScrollOffset_.x + 1);
+		if (Input::IsKeyDown(KEY_INPUT_UP))
+			ScrollOffset_.y = std::max(0, ScrollOffset_.y - 1);
+		if (Input::IsKeyDown(KEY_INPUT_DOWN))
+			ScrollOffset_.y = std::min(std::max(0, efg_.MAP_WIDTH - efg_.MAPEDIT_VIEW_Y), ScrollOffset_.y + 1);
 	}
 
 	int gridX = (mousePos.x - efg_.LEFT_MARGIN) / efg_.MAP_IMAGE_SIZE;
@@ -98,11 +113,85 @@ void MapEdit::Update()
 	{
 		DrawMapData();
 	}
+#else
+	// ... isInMapEditArea_ の判定と、矢印キーによるScrollOffset_の更新処理の後 ...
+	Point mousePos;
+	if (GetMousePoint(&mousePos.x, &mousePos.y) == -1) {
+		return;
+	}
+	// マウスの座標がマップエディタ領域内にいるかどうかを判定する
+	isInMapEditArea_ = mousePos.x >= mapEditRect_.x && mousePos.x <= mapEditRect_.x + mapEditRect_.w &&
+		mousePos.y >= mapEditRect_.y && mousePos.y <= mapEditRect_.y + mapEditRect_.h;
+
+	//左上　mapEditRect_.x, mapEditRect_.y
+	//右上　mapEditRect_.x + mapEditRect_.w, mapEditRect_.y
+	//右下  mapEditRect_.x + mapEditRect_.w, mapEditRect_.y + mapEditRect_.h
+	//左下  mapEditRect_.x, mapEditRect_.y + mapEditRect_.h
+		// グリッド座標に変換
+	if (!isInMapEditArea_) {
+		return; //マップエディタ領域外なら何もしない
+	}
+	else
+	{
+		if (Input::IsKeyDown(KEY_INPUT_LEFT))
+			ScrollOffset_.x = std::max(0, ScrollOffset_.x - 1);
+		if (Input::IsKeyDown(KEY_INPUT_RIGHT))
+			ScrollOffset_.x = std::min(std::max(0, efg_.MAP_WIDTH - efg_.MAPEDIT_VIEW_X), ScrollOffset_.x + 1);
+		if (Input::IsKeyDown(KEY_INPUT_UP))
+			ScrollOffset_.y = std::max(0, ScrollOffset_.y - 1);
+		if (Input::IsKeyDown(KEY_INPUT_DOWN))
+			ScrollOffset_.y = std::min(std::max(0, efg_.MAP_WIDTH - efg_.MAPEDIT_VIEW_Y), ScrollOffset_.y + 1);
+	}
+	// マウスのスクリーン座標から「見た目上」のグリッド座標を計算
+	int viewGridX = (mousePos.x - efg_.LEFT_MARGIN) / efg_.MAP_IMAGE_SIZE;
+	int viewGridY = (mousePos.y - efg_.TOP_MARGIN) / efg_.MAP_IMAGE_SIZE;
+
+	// カーソル下の矩形を描画するための座標は「見た目上」の座標でOK
+	drawAreaRect_ = { efg_.LEFT_MARGIN + viewGridX * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + viewGridY * efg_.MAP_IMAGE_SIZE,
+		efg_.MAP_IMAGE_SIZE, efg_.MAP_IMAGE_SIZE };
+
+	// スクロール量を加味して、マップ全体の「絶対」グリッド座標を計算
+	int mapGridX = viewGridX + ScrollOffset_.x;
+	int mapGridY = viewGridY + ScrollOffset_.y;
+
+	//マウスのボタンが押されたら、持ってる画像をその座標に貼る
+	if (Input::IsButtonKeep(MOUSE_INPUT_LEFT)) //左クリックでマップに値をセット
+	{
+		MapChip* mapChip = FindGameObject<MapChip>();
+
+		if (mapChip && mapChip->IsHold()) //マップチップを持っているなら
+		{
+			if (CheckHitKey(KEY_INPUT_LSHIFT))
+			{
+				// SetMapには絶対座標を渡す
+				SetMap({ mapGridX, mapGridY }, -1);
+			}
+			else
+			{
+				// SetMapには絶対座標を渡す
+				SetMap({ mapGridX, mapGridY }, mapChip->GetHoldImage()); //マップに値をセット
+			}
+		}
+	}
+	// ... 以下、S, L, Dキーの処理はそのまま ...
+	if (Input::IsKeyDown(KEY_INPUT_S))
+	{
+		SaveMapData();
+	}
+	if (Input::IsKeyDown(KEY_INPUT_L))
+	{
+		LoadMapData();
+	}
+	if (Input::IsKeyDown(KEY_INPUT_D))
+	{
+		DrawMapData();
+	}
+#endif
 }
 
 void MapEdit::Draw()
 {//背景を描画する
-
+#if false
 	for (int j = 0;j < efg_.MAP_HEIGHT;j++)
 	{
 		for (int i = 0; i < efg_.MAP_WIDTH; i++)
@@ -118,9 +207,9 @@ void MapEdit::Draw()
 
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 	DrawBox(efg_.LEFT_MARGIN + 0, efg_.TOP_MARGIN + 0,
-		efg_.LEFT_MARGIN + efg_.MAP_WIDTH * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + efg_.MAP_HEIGHT * efg_.MAP_IMAGE_SIZE, GetColor(255, 255, 0), FALSE, 5);
-	for (int j = 0; j < efg_.MAP_HEIGHT; j++) {
-		for (int i = 0; i < efg_.MAP_WIDTH; i++) {
+		efg_.LEFT_MARGIN + efg_.MAPEDIT_VIEW_X * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + efg_.MAPEDIT_VIEW_Y * efg_.MAP_IMAGE_SIZE, GetColor(255, 255, 0), FALSE, 5);
+	for (int j = 0; j < efg_.MAPEDIT_VIEW_Y; j++) {
+		for (int i = 0; i < efg_.MAPEDIT_VIEW_X; i++) {
 			DrawLine(efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE,
 				efg_.LEFT_MARGIN + (i + 1) * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE, GetColor(255, 255, 255), 1);
 			DrawLine(efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE,
@@ -134,7 +223,52 @@ void MapEdit::Draw()
 			GetColor(255, 255, 0), TRUE);
 	}
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+#else
+	
+	 // ビューポートの範囲内だけを描画する
+	for (int j = 0; j < efg_.MAPEDIT_VIEW_Y; j++)
+	{
+		for (int i = 0; i < efg_.MAPEDIT_VIEW_X; i++)
+		{
+			// スクロール量を加味した、マップ本来の座標を計算
+			int mapX = i + ScrollOffset_.x;
+			int mapY = j + ScrollOffset_.y;
 
+			// マップの範囲外は描画しない
+			if (mapX >= efg_.MAP_WIDTH || mapY >= efg_.MAP_HEIGHT) continue;
+
+			// 描画するマップチップの値を取得
+			int value = GetMap({ mapX, mapY });
+
+			if (value != -1)
+			{
+				// 描画位置はビューポート内の座標(i, j)を基準にする
+				DrawGraph(efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE,
+					efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE,
+					value, TRUE);
+			}
+		}
+	}
+
+	// --- 以下は元のコードのまま ---
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+	DrawBox(efg_.LEFT_MARGIN + 0, efg_.TOP_MARGIN + 0,
+		efg_.LEFT_MARGIN + efg_.MAPEDIT_VIEW_X * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + efg_.MAPEDIT_VIEW_Y * efg_.MAP_IMAGE_SIZE, GetColor(255, 255, 0), FALSE, 5);
+	for (int j = 0; j < efg_.MAPEDIT_VIEW_Y; j++) {
+		for (int i = 0; i < efg_.MAPEDIT_VIEW_X; i++) {
+			DrawLine(efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE,
+				efg_.LEFT_MARGIN + (i + 1) * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE, GetColor(255, 255, 255), 1);
+			DrawLine(efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE,
+				efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + (j + 1) * efg_.MAP_IMAGE_SIZE, GetColor(255, 255, 255), 1);
+		}
+	}
+	if (isInMapEditArea_) {
+		DrawBox(drawAreaRect_.x, drawAreaRect_.y,
+			drawAreaRect_.x + drawAreaRect_.w, drawAreaRect_.y + drawAreaRect_.h,
+			GetColor(255, 255, 0), TRUE);
+	}
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+#endif
 
 
 }
