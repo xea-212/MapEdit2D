@@ -24,7 +24,7 @@ public:
 	void LoadMapData();
 	void DrawMapData();
 private:
-	MapEditConfig cfg_;
+	MapEditConfig efg_;
     //std::vector<int> bgHandle_; // マップの配列
 	std::vector<int> myMap_;
 	Rect mapEditRect_; // マップ領域の矩形

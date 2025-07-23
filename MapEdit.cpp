@@ -12,12 +12,12 @@ using namespace std;
 
 
 MapEdit::MapEdit()
-	:GameObject(), myMap_(cfg_.MAP_WIDTH* cfg_.MAP_HEIGHT, -1), //初期値を-1で20*20の配列を初期化する
-	cfg_(GetMapEditConfig()),
+	:GameObject(), myMap_(efg_.MAP_WIDTH* efg_.MAP_HEIGHT, -1), //初期値を-1で20*20の配列を初期化する
+	efg_(GetMapEditConfig()),
 	isInMapEditArea_(false) //マップエディタ領域内にいるかどうか
 {
-	mapEditRect_ = { cfg_.LEFT_MARGIN, cfg_.TOP_MARGIN,
-		cfg_.MAP_WIDTH * cfg_.MAP_IMAGE_SIZE, cfg_.MAP_HEIGHT * cfg_.MAP_IMAGE_SIZE };
+	mapEditRect_ = { efg_.LEFT_MARGIN, efg_.TOP_MARGIN,
+		efg_.MAP_WIDTH * efg_.MAP_IMAGE_SIZE, efg_.MAP_HEIGHT * efg_.MAP_IMAGE_SIZE };
 }
 
 MapEdit::~MapEdit()
@@ -28,9 +28,9 @@ void MapEdit::SetMap(Point p, int value)
 {
 	//マップの座標pにvalueをセットする
 	//pが、配列の範囲外の時はassertにひっかかる
-	assert(p.x >= 0 && p.x < cfg_.MAP_WIDTH);
-	assert(p.y >= 0 && p.y < cfg_.MAP_HEIGHT);
-	myMap_[p.y * cfg_.MAP_WIDTH + p.x] = value; //y行x列にvalueをセットする
+	assert(p.x >= 0 && p.x < efg_.MAP_WIDTH);
+	assert(p.y >= 0 && p.y < efg_.MAP_HEIGHT);
+	myMap_[p.y * efg_.MAP_WIDTH + p.x] = value; //y行x列にvalueをセットする
 
 }
 
@@ -38,9 +38,9 @@ int MapEdit::GetMap(Point p) const
 {
 	//マップの座標pの値を取得する
 	//pが、配列の範囲外の時はassertにひっかかる
-	assert(p.x >= 0 && p.x < cfg_.MAP_WIDTH);
-	assert(p.y >= 0 && p.y < cfg_.MAP_HEIGHT);
-	return myMap_[p.y * cfg_.MAP_WIDTH + p.x]; //y行x列の値を取得する
+	assert(p.x >= 0 && p.x < efg_.MAP_WIDTH);
+	assert(p.y >= 0 && p.y < efg_.MAP_HEIGHT);
+	return myMap_[p.y * efg_.MAP_WIDTH + p.x]; //y行x列の値を取得する
 
 }
 
@@ -63,11 +63,11 @@ void MapEdit::Update()
 		return; //マップエディタ領域外なら何もしない
 	}
 
-	int gridX = (mousePos.x - cfg_.LEFT_MARGIN) / cfg_.MAP_IMAGE_SIZE;
-	int gridY = (mousePos.y - cfg_.TOP_MARGIN) / cfg_.MAP_IMAGE_SIZE;
+	int gridX = (mousePos.x - efg_.LEFT_MARGIN) / efg_.MAP_IMAGE_SIZE;
+	int gridY = (mousePos.y - efg_.TOP_MARGIN) / efg_.MAP_IMAGE_SIZE;
 
-	drawAreaRect_ = { cfg_.LEFT_MARGIN + gridX * cfg_.MAP_IMAGE_SIZE, cfg_.TOP_MARGIN + gridY * cfg_.MAP_IMAGE_SIZE,
-		cfg_.MAP_IMAGE_SIZE, cfg_.MAP_IMAGE_SIZE };
+	drawAreaRect_ = { efg_.LEFT_MARGIN + gridX * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + gridY * efg_.MAP_IMAGE_SIZE,
+		efg_.MAP_IMAGE_SIZE, efg_.MAP_IMAGE_SIZE };
 
 	//マウスのボタンが押されたら、持ってる画像をその座標に貼る
 	if (Input::IsButtonKeep(MOUSE_INPUT_LEFT)) //左クリックでマップに値をセット
@@ -103,28 +103,28 @@ void MapEdit::Update()
 void MapEdit::Draw()
 {//背景を描画する
 
-	for (int j = 0;j < cfg_.MAP_HEIGHT;j++)
+	for (int j = 0;j < efg_.MAP_HEIGHT;j++)
 	{
-		for (int i = 0; i < cfg_.MAP_WIDTH; i++)
+		for (int i = 0; i < efg_.MAP_WIDTH; i++)
 		{
 			int value = GetMap({ i,j });
 			if (value != -1) //-1なら何も描画しない
 			{
-				DrawGraph(cfg_.LEFT_MARGIN + i * cfg_.MAP_IMAGE_SIZE, cfg_.TOP_MARGIN + j * cfg_.MAP_IMAGE_SIZE,
+				DrawGraph(efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE,
 					value, TRUE);
 			}
 		}
 	}
 
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-	DrawBox(cfg_.LEFT_MARGIN + 0, cfg_.TOP_MARGIN + 0,
-		cfg_.LEFT_MARGIN + cfg_.MAP_WIDTH * cfg_.MAP_IMAGE_SIZE, cfg_.TOP_MARGIN + cfg_.MAP_HEIGHT * cfg_.MAP_IMAGE_SIZE, GetColor(255, 255, 0), FALSE, 5);
-	for (int j = 0; j < cfg_.MAP_HEIGHT; j++) {
-		for (int i = 0; i < cfg_.MAP_WIDTH; i++) {
-			DrawLine(cfg_.LEFT_MARGIN + i * cfg_.MAP_IMAGE_SIZE, cfg_.TOP_MARGIN + j * cfg_.MAP_IMAGE_SIZE,
-				cfg_.LEFT_MARGIN + (i + 1) * cfg_.MAP_IMAGE_SIZE, cfg_.TOP_MARGIN + j * cfg_.MAP_IMAGE_SIZE, GetColor(255, 255, 255), 1);
-			DrawLine(cfg_.LEFT_MARGIN + i * cfg_.MAP_IMAGE_SIZE, cfg_.TOP_MARGIN + j * cfg_.MAP_IMAGE_SIZE,
-				cfg_.LEFT_MARGIN + i * cfg_.MAP_IMAGE_SIZE, cfg_.TOP_MARGIN + (j + 1) * cfg_.MAP_IMAGE_SIZE, GetColor(255, 255, 255), 1);
+	DrawBox(efg_.LEFT_MARGIN + 0, efg_.TOP_MARGIN + 0,
+		efg_.LEFT_MARGIN + efg_.MAP_WIDTH * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + efg_.MAP_HEIGHT * efg_.MAP_IMAGE_SIZE, GetColor(255, 255, 0), FALSE, 5);
+	for (int j = 0; j < efg_.MAP_HEIGHT; j++) {
+		for (int i = 0; i < efg_.MAP_WIDTH; i++) {
+			DrawLine(efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE,
+				efg_.LEFT_MARGIN + (i + 1) * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE, GetColor(255, 255, 255), 1);
+			DrawLine(efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + j * efg_.MAP_IMAGE_SIZE,
+				efg_.LEFT_MARGIN + i * efg_.MAP_IMAGE_SIZE, efg_.TOP_MARGIN + (j + 1) * efg_.MAP_IMAGE_SIZE, GetColor(255, 255, 255), 1);
 		}
 	}
 	if (isInMapEditArea_) {
@@ -163,16 +163,16 @@ void MapEdit::SaveMapData()
 
 		/*
 		file << "#header" << std::endl;
-		file << "WIDTH " << cfg_.MAP_WIDTH << std::endl;
-		file << "HEIGHT " << cfg_.MAP_HEIGHT << std::endl;
+		file << "WIDTH " << efg_.MAP_WIDTH << std::endl;
+		file << "HEIGHT " << efg_.MAP_HEIGHT << std::endl;
 		*/
 
 		file << "\n#data" << std::endl;
-		for (int j = 0;j < cfg_.MAP_HEIGHT;j++)
+		for (int j = 0;j < efg_.MAP_HEIGHT;j++)
 		{
-			for (int i = 0; i < cfg_.MAP_WIDTH; i++)
+			for (int i = 0; i < efg_.MAP_WIDTH; i++)
 			{
-				file << m->GetChipIndex(myMap_[j * cfg_.MAP_WIDTH + i]) << ",";
+				file << m->GetChipIndex(myMap_[j * efg_.MAP_WIDTH + i]) << ",";
 			}
 			file << std::endl;
 		}
